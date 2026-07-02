@@ -1,17 +1,33 @@
-# Surgical Tool Recognition and Segmentation based on Enhanced SAM
+# Surgical Tool Recognition and Segmentation Based on Enhanced SAM
 
-基于 RepViT 图像编码器与 SAM 风格掩码解码器的手术器械识别与分割项目。本仓库是论文 **Surgical Tool Recognition and Segmentation based on enhanced SAM** 的代码实现，为上海交通大学计算机视觉课程项目。项目面向机器人辅助手术场景，将手术器械分类识别与像素级分割统一到一个轻量级 SAM-based 框架中，用于在内窥镜图像中同时判断器械类别并生成对应分割掩码。
+This repository provides a lightweight SAM-based framework for surgical tool recognition and segmentation in endoscopic images. The model combines a RepViT image encoder, an auto-prompter, and a SAM-style mask decoder to jointly predict surgical tool categories and class-specific segmentation masks.
 
-## Paper Overview
+本仓库是课程项目报告 **Surgical Tool Recognition and Segmentation Based on Enhanced SAM** 的代码实现，为上海交通大学计算机视觉课程项目。项目面向机器人辅助手术场景，将手术器械分类识别与像素级分割统一到一个轻量级 SAM-based 框架中，用于在内窥镜图像中同时判断器械类别并生成对应分割掩码。
 
-论文针对机器人辅助手术中“需要同时识别手术器械类别并分割器械区域”的需求，提出了一个增强版 SAM 框架。原始 SAM 依赖较重的 ViT 图像编码器和人工 prompt，不适合对实时性要求较高的微创手术场景。本项目使用 RepViT 替换 ViT 编码器，并引入 prompt-free 的 auto-prompter 与简化 mask decoder，使模型能够在无人工 prompt 的情况下完成器械类别相关的分割预测。
+## Quick Start
 
-论文中的主要设计包括：
+```bash
+git clone https://github.com/Jason-zzh/Surgical-Tool-Recognition-and-Segmentation-based-on-enhanced-SAM.git
+cd Surgical-Tool-Recognition-and-Segmentation-based-on-enhanced-SAM
 
-- **Lightweight Architecture**：使用 RepViT-based image encoder 降低计算开销，同时保留空间细节。
-- **Prompt-Free Multi-Task Design**：使用 auto-prompter 生成 dense / sparse embeddings，去除手工 prompt 依赖。
-- **Joint Classification and Segmentation**：通过类别条件 token 将器械类别识别与对应 mask 预测绑定到同一次前向传播中。
-- **Pseudo-Labeling Training**：通过多轮伪标签扩充训练集，缓解医学数据中的类别不均衡问题。
+pip install -r requirements.txt
+
+python train_sam_endo18_rep.py
+python eval_sam_endo18_rep.py
+```
+
+> PyTorch should be installed according to your CUDA version if the default `pip` installation is not suitable for your environment.
+
+## Project Overview
+
+原始 SAM 依赖较重的 ViT 图像编码器和人工 prompt，不适合对实时性要求较高的微创手术场景。本项目使用 RepViT 替换 ViT 编码器，并引入 prompt-free 的 auto-prompter 与简化 mask decoder，使模型能够在无人工 prompt 的情况下完成器械类别相关的分割预测。
+
+课程项目报告中的主要设计包括：
+
+- **Lightweight Architecture**: 使用 RepViT-based image encoder 降低计算开销，同时保留空间细节。
+- **Prompt-Free Multi-Task Design**: 使用 auto-prompter 生成 dense / sparse embeddings，去除手工 prompt 依赖。
+- **Joint Classification and Segmentation**: 通过类别条件 token 将器械类别识别与对应 mask 预测绑定到同一次前向传播中。
+- **Pseudo-Labeling Training**: 通过多轮伪标签扩充训练集，缓解医学数据中的类别不均衡问题。
 
 ## Features
 
@@ -23,37 +39,56 @@
 
 ## Demo
 
+将图片或动图放入 `assets/` 目录后，GitHub README 会直接渲染下列内容。
+
 ### Model Architecture
 
-[Model Architecture](assets/model_architecture.png)
+![Model Architecture](assets/model_architecture.png)
 
 ### Auto Prompter / Mask Decoder
 
-[Auto Prompter Mask Decoder](assets/auto_prompter_mask_decoder.png)
+![Auto Prompter Mask Decoder](assets/auto_prompter_mask_decoder.png)
 
 ### Segmentation Results
 
-[Segmentation Results](assets/segmentation_results.png)
+![Segmentation Results](assets/segmentation_results.png)
 
-### IoU Result
+### IoU Results
 
-[Mean IoU Curve](assets/mean_iou_result.png)
-[Weighted IoU Curve](assets/weighted_iou_result.png)
+![Mean IoU Curve](assets/mean_iou_result.png)
+
+![Weighted IoU Curve](assets/weighted_iou_result.png)
+
+### Result GIF
+
+![Result Demo](assets/result_demo.gif)
 
 ## Project Structure
 
 ```text
 .
-├── train_sam_endo18_rep.py      # 训练入口，包含数据集读取、模型定义与训练循环
-├── eval_sam_endo18_rep.py       # 评估入口，加载 checkpoint 并计算 IoU
-└── rep_vit/
-    ├── common.py                # RepViT 依赖的通用网络层
-    └── rep_vit.py               # RepViT backbone 实现
+├── README.md
+├── LICENSE
+├── requirements.txt
+├── train_sam_endo18_rep.py
+├── eval_sam_endo18_rep.py
+├── rep_vit/
+│   ├── common.py
+│   └── rep_vit.py
+└── assets/
+    ├── model_architecture.png
+    ├── auto_prompter_mask_decoder.png
+    ├── segmentation_results.png
+    ├── mean_iou_result.png
+    ├── weighted_iou_result.png
+    └── result_demo.gif
 ```
 
 ## Method Overview
 
-本项目将手术图像 resize 到 `1024 x 1024` 后输入 RepViT，得到 `256` 通道的图像特征。模型不仅预测目标区域，还会根据类别 id 选择对应的类别 token，从而将“识别是哪一种手术器械”和“分割该器械所在区域”绑定到同一次前向过程中。整体流程如下：
+本项目将手术图像 resize 到 `1024 x 1024` 后输入 RepViT，得到 `256` 通道的图像特征。模型不仅预测目标区域，还会根据类别 id 选择对应的类别 token，从而将“识别是哪一种手术器械”和“分割该器械所在区域”绑定到同一次前向过程中。
+
+整体流程如下：
 
 1. `FeatModel` 使用类条件 mask token 和 two-way transformer，将 RepViT 特征转换为 sparse / dense embeddings。
 2. `Model` 中的 `MaskDecoder` 根据器械类别 id 选择对应 mask token 与 hypernetwork。
@@ -67,7 +102,7 @@
 BF, CA, LND, MCS, PF, SI, UP
 ```
 
-对应论文中的 EndoVis18 类别为：
+对应课程项目报告中的 EndoVis18 类别为：
 
 | Abbr. | Class |
 | --- | --- |
@@ -83,6 +118,10 @@ BF, CA, LND, MCS, PF, SI, UP
 
 建议使用支持 CUDA 的 PyTorch 环境运行训练和评估。
 
+```bash
+pip install -r requirements.txt
+```
+
 主要依赖包括：
 
 - Python 3.8+
@@ -93,30 +132,29 @@ BF, CA, LND, MCS, PF, SI, UP
 - Pillow
 - timm
 
-可参考如下命令安装基础依赖：
-
-```bash
-pip install torch torchvision numpy opencv-python pillow timm
-```
-
-> PyTorch 请根据本机 CUDA 版本从官方安装页面选择对应命令。
+> If CUDA-specific PyTorch installation is required, install PyTorch and torchvision from the official PyTorch instructions first, then run `pip install -r requirements.txt` for the remaining dependencies.
 
 ## Dataset Preparation
 
-下载链接：https://pan.baidu.com/s/1Bm6smjIe04ICpzZo21ObdA?pwd=4dux 提取码: 4dux 
+下载链接：https://pan.baidu.com/s/1Bm6smjIe04ICpzZo21ObdA?pwd=4dux  
+提取码：`4dux`
 
-论文使用 EndoVis17 与 EndoVis18 两个数据集。当前仓库代码默认以 EndoVis18 风格的数据目录进行有监督训练与验证；论文中的多轮伪标签流程可在此基础上扩展。
+Please make sure that the dataset is used only for academic and research purposes and complies with the original EndoVis dataset license and usage terms.
+
+请确保数据集仅用于学术研究，并遵守 EndoVis 数据集原始使用协议。
+
+课程项目报告使用 EndoVis17 与 EndoVis18 两个数据集。当前仓库代码默认以 EndoVis18 风格的数据目录进行有监督训练与验证；完整的多轮伪标签流程可基于当前实现继续扩展。
 
 训练脚本中的数据路径由 `data_dir` 指定，当前代码默认设置为：
 
 ```python
-data_dir = "./your_data_dir"
+data_dir = "./data/dataset_488/dataset/endo18/"
 ```
 
 因此数据集需要放置在项目根目录下的以下结构中：
 
 ```text
-./your_data_dir
+./data/dataset_488/dataset/endo18/
 ├── train_og/          # 训练原图，文件名为 *.png
 ├── train_gt/
 │   ├── BF/
@@ -142,10 +180,10 @@ data_dir = "./your_data_dir"
 如果你的数据路径不同，请在 `train_sam_endo18_rep.py` 和 `eval_sam_endo18_rep.py` 中同步修改：
 
 ```python
-data_dir = "./your_data_dir"
+data_dir = "./data/dataset_488/dataset/endo18/"
 ```
 
-论文中的数据规模如下：
+课程项目报告中的数据规模如下：
 
 | Dataset | Split | Images | Masks | Usage |
 | --- | ---: | ---: | ---: | --- |
@@ -202,13 +240,13 @@ python train_sam_endo18_rep.py
 
 每个 epoch 会保存三部分权重：
 
-- `sam_endo18_rep_<epoch>.torch`：mask decoder 权重
-- `sam_endo18_rep_feat_<epoch>.torch`：feature transformer 权重
-- `sam_endo18_rep_rep_<epoch>.torch`：RepViT backbone 权重
+- `sam_endo18_rep_<epoch>.torch`: mask decoder 权重
+- `sam_endo18_rep_feat_<epoch>.torch`: feature transformer 权重
+- `sam_endo18_rep_rep_<epoch>.torch`: RepViT backbone 权重
 
-## Pseudo-Label Training in the Paper
+## Pseudo-Label Training in the Course Report
 
-论文采用 4 轮训练来缓解类别不均衡：
+课程项目报告采用 4 轮训练来缓解类别不均衡：
 
 | Round | Training Data | Images | Masks |
 | --- | --- | ---: | ---: |
@@ -216,6 +254,8 @@ python train_sam_endo18_rep.py
 | 2 | EndoVis18 + selected EndoVis17 pseudo-labels | 2280 | 4579 |
 | 3 | Expanded pseudo-label dataset | 2445 | 4841 |
 | 4 | Final expanded pseudo-label dataset | 2506 | 4967 |
+
+当前发布的训练脚本提供 EndoVis18 有监督训练与评估流程；完整的多轮伪标签生成、人工筛选和数据合并流程尚未完全脚本化，可基于当前模型实现继续扩展。
 
 ## Evaluation
 
@@ -240,9 +280,11 @@ python eval_sam_endo18_rep.py
 - Mean IoU
 - Class 0 到 Class 6 的 IoU
 
-## Paper Results
+## Reported Results
 
-论文在 EndoVis18 testing dataset 上报告了 4 轮训练后的逐类 IoU：
+The following results are reported in the course project report. The released training script currently provides the supervised EndoVis18 training and evaluation pipeline; the full multi-round pseudo-labeling pipeline can be extended based on the provided implementation.
+
+课程项目报告在 EndoVis18 testing dataset 上报告了 4 轮训练后的逐类 IoU：
 
 | Class | Round 1 | Round 2 | Round 3 | Round 4 |
 | --- | ---: | ---: | ---: | ---: |
@@ -263,9 +305,16 @@ python eval_sam_endo18_rep.py
 
 模型约有 `15M` 参数，单张图像推理时间约为 `0.0235s`，体现了该方法在实时手术场景中的轻量化优势。
 
+## Notes and TODO
+
+- 当前脚本中的路径、类别名称、训练轮数和 batch size 均为硬编码，后续可整理为命令行参数。
+- `eval_sam_endo18_rep.py` 中部分中文注释存在编码异常，并且模型初始化 / `load_models` 定义位置需要检查后再运行。
+- 当前代码默认使用 CUDA，CPU 环境需要修改 `.to('cuda')` 和 `.cuda()` 相关调用。
+- 完整的 4 轮伪标签训练流程尚未完全脚本化。
+
 ## Citation
 
-如果本项目对你的研究有帮助，请引用本项目论文以及相关基础工作，例如 Segment Anything、RepViT、Mask2Former 和 EndoVis 数据集。
+If this project is helpful to your research, coursework, or implementation, please consider citing this repository and the related foundational works, including Segment Anything, RepViT, Mask2Former, and the EndoVis dataset.
 
 ```bibtex
 @misc{gao2025surgicaltoolenhancedsam,
@@ -273,7 +322,7 @@ python eval_sam_endo18_rep.py
   author       = {Gao, Rongjun and Wu, Lyu and Zong, Zihan},
   year         = {2025},
   howpublished = {Course project, Shanghai Jiao Tong University},
-  note         = {Open-source project},
+  note         = {Open-source repository},
   url          = {https://github.com/Jason-zzh/Surgical-Tool-Recognition-and-Segmentation-based-on-enhanced-SAM}
 }
 ```
@@ -281,3 +330,5 @@ python eval_sam_endo18_rep.py
 ## License
 
 This project is released under the MIT License. See [LICENSE](LICENSE) for details.
+
+Please note that datasets, pretrained weights, and third-party code may have their own licenses. Check their original license terms before redistribution or commercial use.
