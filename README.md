@@ -39,8 +39,6 @@ python eval_sam_endo18_rep.py
 
 ## Demo
 
-将图片或动图放入 `assets/` 目录后，GitHub README 会直接渲染下列内容。
-
 ### Model Architecture
 
 ![Model Architecture](assets/model_architecture.png)
@@ -304,13 +302,6 @@ The following results are reported in the course project report. The released tr
 | Weighted IoU | 0.7385 | 0.7585 |
 
 模型约有 `15M` 参数，单张图像推理时间约为 `0.0235s`，体现了该方法在实时手术场景中的轻量化优势。
-
-## Notes and TODO
-
-- 当前脚本中的路径、类别名称、训练轮数和 batch size 均为硬编码，后续可整理为命令行参数。
-- `eval_sam_endo18_rep.py` 中部分中文注释存在编码异常，并且模型初始化 / `load_models` 定义位置需要检查后再运行。
-- 当前代码默认使用 CUDA，CPU 环境需要修改 `.to('cuda')` 和 `.cuda()` 相关调用。
-- 完整的 4 轮伪标签训练流程尚未完全脚本化。
 
 ## Citation
 
