@@ -103,6 +103,8 @@ pip install torch torchvision numpy opencv-python pillow timm
 
 ## Dataset Preparation
 
+下载链接：https://pan.baidu.com/s/1Bm6smjIe04ICpzZo21ObdA?pwd=4dux 提取码: 4dux 
+
 论文使用 EndoVis17 与 EndoVis18 两个数据集。当前仓库代码默认以 EndoVis18 风格的数据目录进行有监督训练与验证；论文中的多轮伪标签流程可在此基础上扩展。
 
 训练脚本中的数据路径由 `data_dir` 指定，当前代码默认设置为：
