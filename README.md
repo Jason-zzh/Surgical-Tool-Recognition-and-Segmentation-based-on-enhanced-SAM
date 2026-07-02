@@ -274,7 +274,7 @@ python eval_sam_endo18_rep.py
   year         = {2025},
   howpublished = {Course project, Shanghai Jiao Tong University},
   note         = {Open-source project},
-  url          = {https://github.com/xxx/xxx}
+  url          = {https://github.com/Jason-zzh/Surgical-Tool-Recognition-and-Segmentation-based-on-enhanced-SAM}
 }
 ```
 
